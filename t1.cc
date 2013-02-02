@@ -113,14 +113,14 @@ run_test_with_input(std::istream &is)
   std::copy(std::istream_iterator<int>(is), std::istream_iterator<int>(),
 			std::back_inserter(v) );
 
-  cout << "lookup in sequence: ";
-  std::copy(v.begin(), v.end(), std::ostream_iterator<int>(cout," "));
-  cout << endl;
+  // cout << "lookup in sequence: ";
+  // std::copy(v.begin(), v.end(), std::ostream_iterator<int>(cout," "));
+  // cout << endl;
 
   std::list<int> r;
   lookup( &v[0], v.size(), r);
   
-  cout << "found in stdandart input: ";
+  cout << "found in standart input: ";
   std::copy(r.begin(), r.end(), std::ostream_iterator<int>(cout," "));
   cout << endl;
 }
@@ -128,6 +128,7 @@ run_test_with_input(std::istream &is)
 int
 main(int argc, char *argv[])
 {
+  // Simple tests, real (huge) test set will be provided from console input
   static const int t0[] = {2}; static const int r0[] = {1, 3};
   static const int t1[] = {1,2,3,4,5,6,7,8,9,10,11};
   static const int t2[] = {1,2,3,4,5,6,7,8,9,10};
