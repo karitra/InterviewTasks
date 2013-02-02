@@ -19,4 +19,3 @@ cat $tmp | ./t1 | tail -n 1
 
 rm $tmp
 
-

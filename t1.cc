@@ -120,7 +120,7 @@ run_test_with_input(std::istream &is)
   std::list<int> r;
   lookup( &v[0], v.size(), r);
   
-  cout << "found in standart input: ";
+  cout << "found in standard input: ";
   std::copy(r.begin(), r.end(), std::ostream_iterator<int>(cout," "));
   cout << endl;
 }
