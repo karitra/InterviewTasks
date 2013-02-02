@@ -19,11 +19,41 @@
 #define GETOFFSET(a,i,d) ((a)[i] - (i) - 1 - (d))
 #define DEF_SIZE 1024
 
+#define DBGINIT()														\
+  do {																	\
+	dbg_current_recursion_depth = 0;									\
+	dbg_max_recursion_depth = 0;										\
+	dbg_find_hits = 0;													\
+  } while(0)
+
+#define DBGPROLOGUE() dbg_depth_t dbgmonitor(dbg_current_recursion_depth, dbg_max_recursion_depth)
+
+static long dbg_find_hits;
+static long dbg_current_recursion_depth;
+static long dbg_max_recursion_depth;
+
+struct dbg_depth_t {
+  long &depth;
+  long &max;
+
+  dbg_depth_t(long &d, long &m) : depth(d), max(m) {
+	if (++depth > max) 
+	  max = depth;
+  }
+
+  ~dbg_depth_t() {
+	--depth;
+  }
+
+};
+
 template<typename T, typename Res>
 inline
 unsigned
 findout(const T *a, const unsigned i, unsigned &d, Res &r )
 {
+  dbg_find_hits++;
+
   //switch(a[i] - i - 1 - d) {
   switch(GETOFFSET(a,i,d)) {
   case 0: return 0;
@@ -38,12 +68,13 @@ inline
 unsigned 
 lookup_imp(const T *a, const unsigned i, const unsigned j, unsigned &d, Res &res) 
 {
+  DBGPROLOGUE();
+
   if (j == i) { // we hit the bottom of the heap
 	return findout(a,i,d,res);
   } else { // still have intervals 
 	int k = (i+j) >> 1; // median
 	
-	//if (unsigned should_find = a[j] - j - 1 - d) {
 	if (unsigned should_find = GETOFFSET(a,j,d)) {
 	  if (lookup_imp(a,  i,k,d,res) == should_find) 
 		return should_find;
@@ -85,7 +116,6 @@ run_test(const T *a, int n, const char *header, const T *check) {
   using std::endl;
 
   std::list<T> r;
-
   lookup(a,n,r);
   cout << header << ' ' << (r.size() == 2 ? "" : "not") << " found: ";
   std::copy(r.begin(), r.end(), std::ostream_iterator<T>(cout," "));
@@ -116,13 +146,15 @@ run_test_with_input(std::istream &is)
   // cout << "lookup in sequence: ";
   // std::copy(v.begin(), v.end(), std::ostream_iterator<int>(cout," "));
   // cout << endl;
+  
+  DBGINIT();
 
   std::list<int> r;
   lookup( &v[0], v.size(), r);
   
   cout << "found in standard input: ";
   std::copy(r.begin(), r.end(), std::ostream_iterator<int>(cout," "));
-  cout << endl;
+  cout << ", hits: " << dbg_find_hits << ", max depth: " << dbg_max_recursion_depth << endl;
 }
 
 int
@@ -146,6 +178,8 @@ main(int argc, char *argv[])
   run_test<>(   t5, NELS(t5), "t5", r5 );
   run_test<>(   t6, NELS(t6), "t6", r6 );
   run_test<int>(t7, NELS(t7), "t7", r7 );
+
+  
 
   run_test_with_input(std::cin);
   return 0;

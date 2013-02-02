@@ -62,6 +62,16 @@ for i in {2050..4097}; do
 done >> $tmp
 
 cat $tmp | ./t1 | tail -n 1
+> $tmp
 
+for i in {2..1025}; do
+	echo -n "$i "
+done >> $tmp
+
+for i in {1027..65536}; do
+	echo -n "$i "
+done >> $tmp
+
+cat $tmp | ./t1 | tail -n 1
 rm $tmp
 
