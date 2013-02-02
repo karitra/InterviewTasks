@@ -2,69 +2,27 @@
 // Copyright 2013 Alex Karev 
 //
 // Interview task:
+// ===============
 //
-//  In sequnce of continues discrete values (without gaps) find missing two values. 
+//  Find two missed numbers in sequence of natural numbers.
 //
-#include <cassert>
-#include <stack>
-#include <iostream>
 #include <algorithm>
+#include <cassert>
+#include <iostream>
 #include <iterator>
+#include <list>
+#include <vector>
 
 #define NELS(a) (sizeof(a) / sizeof(a[0]))
-#define ADDVAL(c,e) c.push_back(Val<T>(e));
+
+#define ADDVAL(c,e)      c.push_back(e)
 #define GETOFFSET(a,i,d) ((a)[i] - (i) - 1 - (d))
+#define DEF_SIZE 1024
 
-template<typename T>
-struct Val {
-  T val;
-  bool nill;
-
-  Val() : nill(true) {}
-  Val(const T &init) : val(init), nill(false) {}
-
-  void set(const T &init) {
-	val  = init;
-	nill = false;
-  }
-
-  T get() const {
-	return val;
-  }
-
-  void remove() {
-	nill = true;
-  }
-
-  bool isNill() const { return nill; }
-
-  bool operator<(const Val<T> &other) const {
-	if (other.nill)
-	  return false;
-
-	if (this->nill)
-	  return false;
-
-	return this->get() < other.get();
-  }
-
-  Val &operator=(Val<T> other) {
-	std::swap<>(val,  other.val  );
-	std::swap<>(nill, other.nill );
-	return *this;
-  }
-};
-
-template<typename T>
-std::ostream &operator<<(std::ostream &o, const Val<T> v) {
-  o << v.get();
-  return o;
-}
-
-template<typename T>
+template<typename T, typename Res>
 inline
 unsigned
-findout(const T *a, const unsigned i, unsigned &d, std::deque< Val<T> > &r )
+findout(const T *a, const unsigned i, unsigned &d, Res &r )
 {
   //switch(a[i] - i - 1 - d) {
   switch(GETOFFSET(a,i,d)) {
@@ -75,10 +33,10 @@ findout(const T *a, const unsigned i, unsigned &d, std::deque< Val<T> > &r )
   return 0;
 }
 
-template<typename T>
+template<typename T, typename Res>
 inline
 unsigned 
-lookup_imp(const T *a, const unsigned i, const unsigned j, unsigned &d, std::deque< Val<T> > &res) 
+lookup_imp(const T *a, const unsigned i, const unsigned j, unsigned &d, Res &res) 
 {
   if (j == i) { // we hit the bottom of the heap
 	return findout(a,i,d,res);
@@ -97,9 +55,10 @@ lookup_imp(const T *a, const unsigned i, const unsigned j, unsigned &d, std::deq
   return 0;
 }
 
-template<typename T>
+// TODO: forbit instance creation on non integer types
+template<typename T, typename Res>
 void 
-lookup(const T *a, int sz, std::deque< Val<T> > &r)  
+lookup(const T *a, const unsigned sz, Res &r)  
 {
   unsigned d = 0;
   // TODO: check & explain return value evaluation
@@ -125,23 +84,45 @@ run_test(const T *a, int n, const char *header, const T *check) {
   using std::cout;
   using std::endl;
 
-  std::deque<Val<T> > r;
+  std::list<T> r;
 
   lookup(a,n,r);
   cout << header << ' ' << (r.size() == 2 ? "" : "not") << " found: ";
-  std::copy(r.begin(), r.end(), std::ostream_iterator<Val<T> >(cout," "));
+  std::copy(r.begin(), r.end(), std::ostream_iterator<T>(cout," "));
   cout << endl;
 
   if (check) {
-	std::sort(r.begin(), r.end());
+	if (r.front() != check[0])
+	  cout << " [0] wrong answer => " << r.front() << endl;
 
-	if (r[0].get() != check[0])
-	  cout << " [0] wrong answer => " << r[0].get() << endl;
-
-	if (r[1].get() != check[1])
-	  cout << " [1] wrong answer => " << r[1].get() << endl;
+	if (r.back() != check[1])
+	  cout << " [1] wrong answer => " << r.back() << endl;
   }
+}
 
+
+void 
+run_test_with_input(std::istream &is)
+{
+  using std::cout;
+  using std::endl;
+
+  std::vector<int> v;
+  v.reserve(DEF_SIZE);
+
+  std::copy(std::istream_iterator<int>(is), std::istream_iterator<int>(),
+			std::back_inserter(v) );
+
+  cout << "lookup in sequence: ";
+  std::copy(v.begin(), v.end(), std::ostream_iterator<int>(cout," "));
+  cout << endl;
+
+  std::list<int> r;
+  lookup( &v[0], v.size(), r);
+  
+  cout << "found in stdandart input: ";
+  std::copy(r.begin(), r.end(), std::ostream_iterator<int>(cout," "));
+  cout << endl;
 }
 
 int
@@ -165,5 +146,6 @@ main(int argc, char *argv[])
   run_test<>(   t6, NELS(t6), "t6", r6 );
   run_test<int>(t7, NELS(t7), "t7", r7 );
 
+  run_test_with_input(std::cin);
   return 0;
 }
